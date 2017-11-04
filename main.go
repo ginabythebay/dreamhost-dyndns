@@ -4,24 +4,18 @@ package main
 import (
 	"crypto/rand"
 	"fmt"
-	"github.com/kardianos/osext"
-	config "github.com/spf13/viper"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
+
+	config "github.com/spf13/viper"
 )
 
 //Runtime
 func init() {
-	folderPath, err := osext.ExecutableFolder()
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-
-	config.AddConfigPath(folderPath)
+	config.AddConfigPath("$HOME/.config/dreamhost-dyndns")
 	config.SetConfigName("config")
 	config.ReadInConfig()
 }
