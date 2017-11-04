@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -23,15 +24,17 @@ func init() {
 func main() {
 	apiKey := config.GetString("APIKey")
 	dnsName := config.GetString("DNSName")
-	currentIP := getHTTP(config.GetString("IPLookupUri"))
+	externalIP := getHTTP(config.GetString("IPLookupUri"))
 	previousRecord := getPreviousRecord(apiKey, dnsName)
+	log.Printf("Deduced external IP: %q", externalIP)
+	log.Printf("Previous record: %+v", previousRecord)
 
-	if currentIP == previousRecord[4] {
-		fmt.Println("DNS Unchanged...")
+	if externalIP == previousRecord[4] {
+		log.Println("DNS Unchanged...")
 	} else {
-		fmt.Println("Updating DNS...")
-		removeDNS(apiKey, previousRecord)
-		addDNS(apiKey, dnsName, currentIP)
+		log.Println("Updating DNS...")
+		log.Printf("removal: %q", removeDNS(apiKey, previousRecord))
+		log.Printf("add: %q", addDNS(apiKey, dnsName, externalIP))
 	}
 }
 
@@ -99,10 +102,10 @@ func removeDNS(apiKey string, previousRecord []string) []string {
 	return response
 }
 
-func addDNS(apiKey string, dnsName string, currentIP string) []string {
+func addDNS(apiKey string, dnsName string, externalIP string) []string {
 	hostname, _ := os.Hostname()
 
-	uri := "https://api.dreamhost.com/?key=" + apiKey + "&unique_id=" + newUUID() + "&cmd=dns-add_record&ps=" + hostname + "&record=" + dnsName + "&type=A&value=" + currentIP
+	uri := "https://api.dreamhost.com/?key=" + apiKey + "&unique_id=" + newUUID() + "&cmd=dns-add_record&ps=" + hostname + "&record=" + dnsName + "&type=A&value=" + externalIP
 	response := strings.Fields(getHTTP(uri))
 
 	return response
