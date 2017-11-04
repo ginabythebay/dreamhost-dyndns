@@ -23,20 +23,20 @@ func init() {
 func main() {
 	apiKey := config.GetString("APIKey")
 	dnsName := config.GetString("DNSName")
-	currentIp := getHttp(config.GetString("IPLookupUri"))
+	currentIP := getHTTP(config.GetString("IPLookupUri"))
 	previousRecord := getPreviousRecord(apiKey, dnsName)
 
-	if currentIp == previousRecord[4] {
+	if currentIP == previousRecord[4] {
 		fmt.Println("DNS Unchanged...")
 	} else {
 		fmt.Println("Updating DNS...")
-		removeDns(apiKey, previousRecord)
-		addDns(apiKey, dnsName, currentIp)
+		removeDNS(apiKey, previousRecord)
+		addDNS(apiKey, dnsName, currentIP)
 	}
 }
 
 //Functions
-func getHttp(uri string) string {
+func getHTTP(uri string) string {
 	r, err := http.Get(uri)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -79,7 +79,7 @@ func getPreviousRecord(apiKey string, dnsEntry string) []string {
 	hostname, _ := os.Hostname()
 
 	uri := "https://api.dreamhost.com/?key=" + apiKey + "&unique_id=" + newUUID() + "&cmd=dns-list_records&ps=" + hostname
-	records := strings.Fields(getHttp(uri))
+	records := strings.Fields(getHTTP(uri))
 	index := getIndexInSlice(records, dnsEntry)
 
 	if index == -1 {
@@ -90,20 +90,20 @@ func getPreviousRecord(apiKey string, dnsEntry string) []string {
 	return records[index-2 : index+6]
 }
 
-func removeDns(apiKey string, previousRecord []string) []string {
+func removeDNS(apiKey string, previousRecord []string) []string {
 	hostname, _ := os.Hostname()
 
 	uri := "https://api.dreamhost.com/?key=" + apiKey + "&unique_id=" + newUUID() + "&cmd=dns-remove_record&ps=" + hostname + "&record=" + previousRecord[2] + "&type=" + previousRecord[3] + "&value=" + previousRecord[4]
-	response := strings.Fields(getHttp(uri))
+	response := strings.Fields(getHTTP(uri))
 
 	return response
 }
 
-func addDns(apiKey string, dnsName string, currentIp string) []string {
+func addDNS(apiKey string, dnsName string, currentIP string) []string {
 	hostname, _ := os.Hostname()
 
-	uri := "https://api.dreamhost.com/?key=" + apiKey + "&unique_id=" + newUUID() + "&cmd=dns-add_record&ps=" + hostname + "&record=" + dnsName + "&type=A&value=" + currentIp
-	response := strings.Fields(getHttp(uri))
+	uri := "https://api.dreamhost.com/?key=" + apiKey + "&unique_id=" + newUUID() + "&cmd=dns-add_record&ps=" + hostname + "&record=" + dnsName + "&type=A&value=" + currentIP
+	response := strings.Fields(getHTTP(uri))
 
 	return response
 }
